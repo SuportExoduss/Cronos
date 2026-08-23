@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Inclui preferências do app -->
+    <include domain="sharedpref" path="." />
+
+    <!-- Exclui o banco Room — contém dados do usuário que não devem ir para ADB backup -->
+    <exclude domain="database" path="cronos.db" />
+    <exclude domain="database" path="cronos.db-shm" />
+    <exclude domain="database" path="cronos.db-wal" />
+</full-backup-content>

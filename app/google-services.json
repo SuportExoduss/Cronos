@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "791739363373",
+    "project_id": "cronosapp369",
+    "storage_bucket": "cronosapp369.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791739363373:android:3e150f52efc8788ac308a4",
+        "android_client_info": {
+          "package_name": "com.exoduss.cronos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "791739363373-ph09dqc09bv53no8knmn6trkuk63nnrq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVuCyRcOvyz1VKj_SLinHIBIbLXk1rzqM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "791739363373-ph09dqc09bv53no8knmn6trkuk63nnrq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791739363373:android:d349e784825f3814c308a4",
+        "android_client_info": {
+          "package_name": "com.exoduss.cronos.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "791739363373-3thubik7ou1mq736r96qnlt0nqkuhv9c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.exoduss.cronos.debug",
+            "certificate_hash": "dccfd15b00038f8d7835db5f7efcb03524b1c377"
+          }
+        },
+        {
+          "client_id": "791739363373-ph09dqc09bv53no8knmn6trkuk63nnrq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVuCyRcOvyz1VKj_SLinHIBIbLXk1rzqM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "791739363373-ph09dqc09bv53no8knmn6trkuk63nnrq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
