@@ -17,4 +17,5 @@ interface TaskRepository {
     suspend fun deleteTask(task: Task)
     suspend fun updateStatus(id: String, status: TaskStatus)
     suspend fun togglePin(id: String, pinned: Boolean)
+    suspend fun markNextSpawned(id: String)
 }

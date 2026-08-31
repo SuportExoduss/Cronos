@@ -3,6 +3,7 @@ package com.exoduss.cronos.ui.components
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -49,15 +50,12 @@ fun AddMediaDialog(
         onDismiss()
     }
 
-    // Gallery launcher (images + videos)
+    // Gallery launcher — PhotoPicker (imagens + vídeos). Concede acesso de leitura sem
+    // exigir takePersistableUriPermission (que CRASHAVA com URIs de GetContent/SecurityException).
     val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri?.let {
-            // Persist permission to read the URI across sessions
-            context.contentResolver.takePersistableUriPermission(
-                it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
             val type = if (context.contentResolver.getType(it)?.startsWith("video") == true)
                 "video" else "photo"
             onMediaPicked(it.toString(), type)
@@ -123,7 +121,11 @@ fun AddMediaDialog(
                 }
                 // Galeria
                 OutlinedButton(
-                    onClick = { galleryLauncher.launch("image/* video/*") },
+                    onClick = {
+                        galleryLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
                     Icon(Icons.Default.Photo, null, Modifier.size(18.dp))

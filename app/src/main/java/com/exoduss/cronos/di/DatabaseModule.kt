@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
 import com.exoduss.cronos.data.local.CronosDatabase
+import com.exoduss.cronos.data.local.MIGRATION_5_6
 import com.exoduss.cronos.data.local.dao.ReminderLogDao
 import com.exoduss.cronos.data.local.dao.SubtaskDao
 import com.exoduss.cronos.data.local.dao.TaskDao
@@ -26,8 +27,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): CronosDatabase =
         Room.databaseBuilder(context, CronosDatabase::class.java, "cronos.db")
-            // Adicione migrações aqui conforme necessário:
-            // .addMigrations(MIGRATION_5_6, MIGRATION_6_7, ...)
+            .addMigrations(MIGRATION_5_6)
             .addCallback(object : androidx.room.RoomDatabase.Callback() {
                 override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                     super.onCreate(db)

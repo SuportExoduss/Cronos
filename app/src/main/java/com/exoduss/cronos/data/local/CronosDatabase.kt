@@ -42,7 +42,7 @@ import com.exoduss.cronos.data.local.entity.TaskTypeEntity
         ReminderLogEntity::class,
         TaskMediaEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class CronosDatabase : RoomDatabase() {

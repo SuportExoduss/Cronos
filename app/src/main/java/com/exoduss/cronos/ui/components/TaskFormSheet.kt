@@ -330,7 +330,7 @@ fun TaskFormSheet(
                     if (formState.recurrence != Recurrence.NONE) {
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Em breve — a execução automática de recorrência ainda não está disponível.",
+                            "Ao concluir, a próxima ocorrência é criada automaticamente.",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )

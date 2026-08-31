@@ -2,6 +2,8 @@ package com.exoduss.cronos.ui.shared
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.net.Uri
+import com.exoduss.cronos.data.media.TaskMediaStore
 import com.exoduss.cronos.data.repository.PreferencesRepository
 import com.exoduss.cronos.data.repository.SubtaskRepository
 import com.exoduss.cronos.data.repository.TaskMediaRepository
@@ -40,7 +42,8 @@ data class TaskFormState(
     // Capturados no momento em que o formulário de edição é aberto,
     // evitando race condition com mudanças concorrentes de status
     val originalStatus: TaskStatus = TaskStatus.PENDING,
-    val originalCreatedAt: Long = 0L
+    val originalCreatedAt: Long = 0L,
+    val originalNextSpawned: Boolean = false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -51,7 +54,8 @@ class TaskFormViewModel @Inject constructor(
     private val subtaskRepository: SubtaskRepository,
     private val preferencesRepository: PreferencesRepository,
     private val taskMediaRepository: TaskMediaRepository,
-    private val reminderScheduler: ReminderScheduler
+    private val reminderScheduler: ReminderScheduler,
+    private val mediaStore: TaskMediaStore
 ) : ViewModel() {
 
     // Tipos disponíveis
@@ -138,7 +142,8 @@ class TaskFormViewModel @Inject constructor(
                 reminderFrequency   = task.reminderFrequency,
                 reminderDaysBefore  = task.reminderDaysBefore,
                 originalStatus      = task.status,
-                originalCreatedAt   = task.createdAt
+                originalCreatedAt   = task.createdAt,
+                originalNextSpawned = task.nextSpawned
             )
             _showFormSheet.value = true
         }
@@ -200,6 +205,7 @@ class TaskFormViewModel @Inject constructor(
                     reminderEnabled    = s.reminderEnabled,
                     reminderFrequency  = s.reminderFrequency,
                     reminderDaysBefore = s.reminderDaysBefore,
+                    nextSpawned = if (s.editingId != null) s.originalNextSpawned else false,
                     createdAt  = if (s.editingId != null) s.originalCreatedAt else System.currentTimeMillis(),
                     updatedAt  = System.currentTimeMillis()
                 )
@@ -249,13 +255,15 @@ class TaskFormViewModel @Inject constructor(
             if (status == TaskStatus.DONE || status == TaskStatus.CANCELLED) {
                 reminderScheduler.cancelReminders(taskId)
             }
-            // Materializa a próxima ocorrência de tarefas recorrentes ao concluir pela 1ª vez
-            if (status == TaskStatus.DONE && previousStatus != TaskStatus.DONE && task != null) {
+            // Materializa a próxima ocorrência de tarefas recorrentes ao concluir pela 1ª vez.
+            // O guard !task.nextSpawned evita duplicatas ao desmarcar/marcar concluída de novo.
+            if (status == TaskStatus.DONE && previousStatus != TaskStatus.DONE && task != null && !task.nextSpawned) {
                 task.nextOccurrence()?.let { next ->
                     val subs = subtaskRepository.getSubtasksForTask(task.id).first()
                         .map { it.copy(id = UUID.randomUUID().toString(), taskId = next.id, isDone = false) }
                     taskRepository.saveTaskWithSubtasks(next, subs)
                     reminderScheduler.scheduleReminders(next)
+                    taskRepository.markNextSpawned(task.id)
                 }
             }
             // Aciona prompt de mídia ao concluir pela primeira vez
@@ -269,11 +277,14 @@ class TaskFormViewModel @Inject constructor(
 
     fun addMedia(taskId: String, uri: String, mediaType: String) {
         viewModelScope.launch {
+            // Copia para armazenamento interno (permanente); em falha, mantém o URI original.
+            val storedUri = runCatching { mediaStore.importFromUri(Uri.parse(uri), mediaType) }
+                .getOrDefault(uri)
             taskMediaRepository.addMedia(
                 TaskMedia(
-                    id = java.util.UUID.randomUUID().toString(),
+                    id = UUID.randomUUID().toString(),
                     taskId = taskId,
-                    uri = uri,
+                    uri = storedUri,
                     mediaType = mediaType,
                     createdAt = System.currentTimeMillis(),
                     pendingBackup = true
@@ -283,7 +294,10 @@ class TaskFormViewModel @Inject constructor(
     }
 
     fun deleteMedia(media: TaskMedia) {
-        viewModelScope.launch { taskMediaRepository.deleteMedia(media) }
+        viewModelScope.launch {
+            taskMediaRepository.deleteMedia(media)
+            mediaStore.deleteFile(media.uri)
+        }
     }
 
     fun toggleSubtaskInDetail(id: String, isDone: Boolean) {
@@ -294,6 +308,10 @@ class TaskFormViewModel @Inject constructor(
         viewModelScope.launch {
             reminderScheduler.cancelReminders(task.id)
             subtaskRepository.deleteSubtasksForTask(task.id)
+            // Remove mídias (arquivos internos + linhas) — antes ficavam órfãs no disco/DB
+            val mediaList = taskMediaRepository.getMediaForTask(task.id).first()
+            mediaList.forEach { mediaStore.deleteFile(it.uri) }
+            taskMediaRepository.deleteForTask(task.id)
             taskRepository.deleteTask(task)
             closeDetail()
         }

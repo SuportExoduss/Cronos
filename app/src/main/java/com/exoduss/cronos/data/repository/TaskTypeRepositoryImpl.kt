@@ -26,10 +26,4 @@ class TaskTypeRepositoryImpl @Inject constructor(
 
     override suspend fun getTaskCountForType(typeId: String): Int =
         taskTypeDao.getTaskCountForType(typeId)
-
-    suspend fun ensureDefaultTypes() {
-        if (taskTypeDao.count() == 0) {
-            taskTypeDao.insertTypes(DefaultTaskTypes.map { it.toEntity() })
-        }
-    }
 }

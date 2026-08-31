@@ -20,6 +20,9 @@ data class Task(
     val reminderDaysBefore: Int = 0,
     val isGroupTask: Boolean = false,
     val groupId: String? = null,
+    // true quando esta tarefa recorrente já materializou sua próxima ocorrência —
+    // evita duplicatas ao desmarcar/marcar concluída novamente.
+    val nextSpawned: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )
@@ -85,10 +88,11 @@ fun Task.nextOccurrence(now: Long = System.currentTimeMillis()): Task? {
         Recurrence.MONTHLY -> base.plusMonths(1)
     }
     return copy(
-        id        = UUID.randomUUID().toString(),
-        dueDate   = next,
-        status    = TaskStatus.PENDING,
-        createdAt = now,
-        updatedAt = now
+        id          = UUID.randomUUID().toString(),
+        dueDate     = next,
+        status      = TaskStatus.PENDING,
+        nextSpawned = false,   // ocorrência nova ainda não gerou a sua própria sucessora
+        createdAt   = now,
+        updatedAt   = now
     )
 }

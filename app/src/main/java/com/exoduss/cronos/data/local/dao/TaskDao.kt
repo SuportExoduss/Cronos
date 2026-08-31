@@ -35,6 +35,9 @@ interface TaskDao {
     @Query("UPDATE tasks SET pinned = :pinned, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updatePinned(id: String, pinned: Boolean, updatedAt: Long)
 
+    @Query("UPDATE tasks SET nextSpawned = :value WHERE id = :id")
+    suspend fun updateNextSpawned(id: String, value: Boolean)
+
     @Query("DELETE FROM tasks WHERE id = :id")
     suspend fun deleteById(id: String)
 

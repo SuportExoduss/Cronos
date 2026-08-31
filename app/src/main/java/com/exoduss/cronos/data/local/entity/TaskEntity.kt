@@ -1,5 +1,6 @@
 package com.exoduss.cronos.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.exoduss.cronos.domain.model.Priority
@@ -29,6 +30,7 @@ data class TaskEntity(
     val reminderDaysBefore: Int = 0,
     val isGroupTask: Boolean,
     val groupId: String?,
+    @ColumnInfo(defaultValue = "0") val nextSpawned: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long
 ) {
@@ -53,6 +55,7 @@ data class TaskEntity(
         reminderDaysBefore = reminderDaysBefore,
         isGroupTask = isGroupTask,
         groupId     = groupId,
+        nextSpawned = nextSpawned,
         createdAt   = createdAt,
         updatedAt   = updatedAt
     )
@@ -74,6 +77,7 @@ fun Task.toEntity() = TaskEntity(
     reminderDaysBefore = reminderDaysBefore,
     isGroupTask = isGroupTask,
     groupId = groupId,
+    nextSpawned = nextSpawned,
     createdAt = createdAt,
     updatedAt = updatedAt
 )

@@ -53,4 +53,7 @@ class TaskRepositoryImpl @Inject constructor(
 
     override suspend fun togglePin(id: String, pinned: Boolean) =
         taskDao.updatePinned(id, pinned, System.currentTimeMillis())
+
+    override suspend fun markNextSpawned(id: String) =
+        taskDao.updateNextSpawned(id, true)
 }
