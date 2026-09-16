@@ -30,6 +30,7 @@ import com.exoduss.cronos.domain.model.TaskStatus
 import com.exoduss.cronos.domain.model.TaskType
 import com.exoduss.cronos.ui.components.TaskCard
 import com.exoduss.cronos.ui.components.TaskSheets
+import com.exoduss.cronos.ui.components.TaskTimeline
 import com.exoduss.cronos.ui.profile.ProfileIcon
 import com.exoduss.cronos.ui.shared.TaskFormViewModel
 import com.exoduss.cronos.ui.theme.*
@@ -248,100 +249,61 @@ fun HomeScreen(
                 }
             }
 
-            // ── Próximos compromissos ─────────────────────────────────────────
+            // ── Próximos compromissos (timeline) ──────────────────────────────
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(34.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.AccessTime,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                "Próximos compromissos",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                    Icon(
+                        Icons.Default.AccessTime, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        "Próximos compromissos",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
 
-                        if (proximosTasks.isEmpty()) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 28.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .clip(RoundedCornerShape(20.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.CalendarMonth,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                        modifier = Modifier.size(40.dp)
-                                    )
-                                }
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    "Você não tem compromissos próximos",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(
-                                    "Crie tarefas ou eventos para vê-los aqui.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(Modifier.height(8.dp))
-                                OutlinedButton(
-                                    onClick = { formViewModel.openAddForm(preselectedDate = today) },
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.primary
-                                    )
-                                ) {
-                                    Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("Criar nova tarefa", style = MaterialTheme.typography.labelLarge)
-                                }
-                            }
+                if (proximosTasks.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            "Você não tem compromissos próximos",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            "Que tal organizar o próximo?",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        OutlinedButton(
+                            onClick = { formViewModel.openAddForm(preselectedDate = today) },
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Nova tarefa", style = MaterialTheme.typography.labelLarge)
                         }
                     }
-                }
-            }
-
-            // Tarefas dentro de "Próximos compromissos"
-            if (proximosTasks.isNotEmpty()) {
-                items(proximosTasks, key = { "prox_${it.id}" }) { task ->
-                    TaskCardItem(task, taskTypes, formViewModel)
+                } else {
+                    TaskTimeline(
+                        tasks = proximosTasks,
+                        taskTypes = taskTypes,
+                        onTap = { formViewModel.openDetail(it) }
+                    )
                 }
             }
 
