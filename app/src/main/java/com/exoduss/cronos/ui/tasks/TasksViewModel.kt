@@ -11,7 +11,6 @@ import com.exoduss.cronos.domain.model.isOverdue
 import com.exoduss.cronos.domain.model.smartGroup
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
-import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,7 +37,6 @@ class TasksViewModel @Inject constructor(
     val filteredTasks: StateFlow<List<Task>> = combine(
         allTasks, _searchQuery, _statusFilter, _typeFilter
     ) { tasks, query, status, typeId ->
-        val today = LocalDate.now()
         tasks
             .filter { task ->
                 val matchQuery = query.isBlank() ||
@@ -46,12 +44,11 @@ class TasksViewModel @Inject constructor(
                     task.description.contains(query, ignoreCase = true)
                 val matchStatus = when (status) {
                     null -> true
-                    TaskStatus.PENDING -> task.status == TaskStatus.PENDING && (task.dueDate == null || task.dueDate >= today)
+                    TaskStatus.PENDING -> task.status == TaskStatus.PENDING          // inclui atrasadas
                     TaskStatus.IN_PROGRESS -> task.status == TaskStatus.IN_PROGRESS
                     TaskStatus.DONE -> task.status == TaskStatus.DONE
                     TaskStatus.CANCELLED -> task.status == TaskStatus.CANCELLED
                 }
-                val matchOverdue = status == null || !(status == TaskStatus.PENDING && task.isOverdue())
                 val matchType = typeId == null || task.typeId == typeId
                 matchQuery && matchStatus && matchType
             }

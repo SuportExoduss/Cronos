@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -19,8 +18,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.exoduss.cronos.ui.calendar.CalendarScreen
 import com.exoduss.cronos.ui.home.HomeScreen
-import com.exoduss.cronos.ui.home.HomeViewModel
-import com.exoduss.cronos.ui.notifications.NotificationsScreen
 import com.exoduss.cronos.ui.onboarding.OnboardingScreen
 import com.exoduss.cronos.ui.permissions.PermissionsScreen
 import com.exoduss.cronos.ui.settings.SettingsScreen
@@ -37,7 +34,6 @@ private val bottomNavItems = listOf(
     BottomNavItem(Screen.Home, Icons.Default.Home, "Home"),
     BottomNavItem(Screen.Calendar, Icons.Default.CalendarMonth, "Calendário"),
     BottomNavItem(Screen.Tasks, Icons.Default.CheckBox, "Tarefas"),
-    BottomNavItem(Screen.Notifications, Icons.Default.Notifications, "Avisos"),
     BottomNavItem(Screen.Settings, Icons.Default.Settings, "Config")
 )
 
@@ -57,7 +53,6 @@ fun CronosNavGraph(
 
     // TaskFormViewModel compartilhado — scoped ao NavGraph (Activity lifecycle)
     val taskFormViewModel: TaskFormViewModel = hiltViewModel()
-    val homeViewModel: HomeViewModel = hiltViewModel()
 
     // Abre o detail da tarefa quando o app é iniciado via notificação
     LaunchedEffect(pendingNotifTaskId) {
@@ -67,9 +62,6 @@ fun CronosNavGraph(
         onNotifTaskConsumed()
     }
 
-    val overdueTasks by homeViewModel.overdueTasks.collectAsStateWithLifecycle()
-    val overdueCount = overdueTasks.size
-
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -77,15 +69,7 @@ fun CronosNavGraph(
                     bottomNavItems.forEach { item ->
                         val isSelected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
                         NavigationBarItem(
-                            icon = {
-                                if (item.screen == Screen.Notifications && overdueCount > 0) {
-                                    BadgedBox(badge = { Badge { Text(overdueCount.toString()) } }) {
-                                        Icon(item.icon, item.label)
-                                    }
-                                } else {
-                                    Icon(item.icon, item.label)
-                                }
-                            },
+                            icon = { Icon(item.icon, item.label) },
                             label = { Text(item.label, style = MaterialTheme.typography.labelSmall) },
                             selected = isSelected,
                             onClick = {
@@ -135,9 +119,6 @@ fun CronosNavGraph(
             }
             composable(Screen.Calendar.route) {
                 CalendarScreen(formViewModel = taskFormViewModel)
-            }
-            composable(Screen.Notifications.route) {
-                NotificationsScreen(formViewModel = taskFormViewModel)
             }
             composable(Screen.Settings.route) {
                 SettingsScreen(onThemeChange = onThemeChange)

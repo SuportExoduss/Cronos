@@ -29,8 +29,7 @@ import com.exoduss.cronos.domain.model.Task
 import com.exoduss.cronos.domain.model.TaskStatus
 import com.exoduss.cronos.domain.model.TaskType
 import com.exoduss.cronos.ui.components.TaskCard
-import com.exoduss.cronos.ui.components.TaskDetailSheet
-import com.exoduss.cronos.ui.components.TaskFormSheet
+import com.exoduss.cronos.ui.components.TaskSheets
 import com.exoduss.cronos.ui.profile.ProfileIcon
 import com.exoduss.cronos.ui.shared.TaskFormViewModel
 import com.exoduss.cronos.ui.theme.*
@@ -54,27 +53,12 @@ fun HomeScreen(
     val overdueTasks    by viewModel.overdueTasks.collectAsStateWithLifecycle()
     val taskTypes       by viewModel.taskTypes.collectAsStateWithLifecycle()
 
-    val showFormSheet   by formViewModel.showFormSheet.collectAsStateWithLifecycle()
-    val formState       by formViewModel.formState.collectAsStateWithLifecycle()
-    val formSubtasks    by formViewModel.formSubtasks.collectAsStateWithLifecycle()
-    val isSaving        by formViewModel.isSaving.collectAsStateWithLifecycle()
-    val saveError       by formViewModel.saveError.collectAsStateWithLifecycle()
-    val showDetailSheet by formViewModel.showDetailSheet.collectAsStateWithLifecycle()
-    val selectedTask    by formViewModel.selectedTask.collectAsStateWithLifecycle()
-    val selectedSubs    by formViewModel.selectedTaskSubtasks.collectAsStateWithLifecycle()
-    val selectedType    by formViewModel.selectedTaskType.collectAsStateWithLifecycle()
-    val selectedMedia   by formViewModel.selectedTaskMedia.collectAsStateWithLifecycle()
-    val pendingMediaId  by formViewModel.pendingMediaTaskId.collectAsStateWithLifecycle()
-    val allTypes        by formViewModel.taskTypes.collectAsStateWithLifecycle()
-
     val today        = LocalDate.now()
     val hour         = LocalTime.now().hour
     val greeting     = when { hour < 12 -> "Bom dia"; hour < 18 -> "Boa tarde"; else -> "Boa noite" }
     val dateLabel    = today.format(DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", Locale("pt", "BR")))
     val completedToday = todayTasks.count { it.status == TaskStatus.DONE }
     val totalToday     = todayTasks.size
-    val inProgressCount = todayTasks.count { it.status == TaskStatus.IN_PROGRESS }
-    val scheduledCount  = pendingTasks.size
 
     val proximosTasks = (todayTasks.filter { it.status != TaskStatus.DONE && it.status != TaskStatus.CANCELLED } +
             pendingTasks).distinctBy { it.id }.take(5)
@@ -211,16 +195,6 @@ fun HomeScreen(
                                 )
                             }
                             Spacer(Modifier.height(10.dp))
-                            LinearProgressIndicator(
-                                progress = { if (totalToday > 0) completedToday.toFloat() / totalToday else 0f },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(4.dp)
-                                    .clip(RoundedCornerShape(2.dp)),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.outline
-                            )
-                            Spacer(Modifier.height(10.dp))
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -244,43 +218,6 @@ fun HomeScreen(
                             modifier = Modifier.size(90.dp)
                         )
                     }
-                }
-            }
-
-            // ── Grid de estatísticas ─────────────────────────────────────────
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatBox(
-                        icon     = Icons.Default.RadioButtonUnchecked,
-                        iconTint = MaterialTheme.colorScheme.primary,
-                        count    = overdueTasks.size + todayTasks.count { it.status == TaskStatus.PENDING },
-                        label    = "Pendentes",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatBox(
-                        icon     = Icons.Default.Timelapse,
-                        iconTint = WarningDark,
-                        count    = inProgressCount,
-                        label    = "Em progresso",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatBox(
-                        icon     = Icons.Default.CheckCircle,
-                        iconTint = BluePrimary,
-                        count    = completedToday,
-                        label    = "Concluídas",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatBox(
-                        icon     = Icons.Default.CalendarMonth,
-                        iconTint = TypeEstudo,
-                        count    = scheduledCount,
-                        label    = "Agendadas",
-                        modifier = Modifier.weight(1f)
-                    )
                 }
             }
 
@@ -408,164 +345,11 @@ fun HomeScreen(
                 }
             }
 
-            // ── Foco do dia ───────────────────────────────────────────────────
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.GpsFixed,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "Foco do dia",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                "Defina sua prioridade principal para hoje",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        OutlinedButton(
-                            onClick = {},
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.primary
-                            ),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                        ) {
-                            Text("Definir foco", style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
-                }
-            }
-
-            // ── Banner premium ────────────────────────────────────────────────
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = GoldSurface),
-                    border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(GoldPrimary.copy(alpha = 0.15f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.EmojiEvents,
-                                contentDescription = null,
-                                tint = GoldPrimary,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "Desbloqueie todo o potencial do Cronos",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = GoldPrimary
-                            )
-                            Text(
-                                "Faça upgrade e tenha mais recursos exclusivos.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Button(
-                            onClick = {},
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = GoldPrimary,
-                                contentColor   = Color(0xFF0B0D12)
-                            ),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Text(
-                                "Ver planos",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-
             item { Spacer(Modifier.height(80.dp)) }
         }
     }
 
-    TaskFormSheet(
-        visible              = showFormSheet,
-        formState            = formState,
-        formSubtasks         = formSubtasks,
-        taskTypes            = allTypes,
-        onDismiss            = { formViewModel.closeForm() },
-        onUpdateTitle        = { formViewModel.updateTitle(it) },
-        onUpdateDescription  = { formViewModel.updateDescription(it) },
-        onUpdateTypeId       = { formViewModel.updateTypeId(it) },
-        onUpdatePriority     = { formViewModel.updatePriority(it) },
-        onUpdateDueDate      = { formViewModel.updateDueDate(it) },
-        onUpdateDueTime      = { formViewModel.updateDueTime(it) },
-        onUpdateRecurrence   = { formViewModel.updateRecurrence(it) },
-        onUpdatePinned       = { formViewModel.updatePinned(it) },
-        onUpdateReminder     = { formViewModel.updateReminder(it) },
-        onUpdateReminderFrequency   = { formViewModel.updateReminderFrequency(it) },
-        onUpdateReminderDaysBefore  = { formViewModel.updateReminderDaysBefore(it) },
-        onAddSubtask         = { formViewModel.addSubtask(it) },
-        onRemoveSubtask      = { formViewModel.removeSubtask(it) },
-        onToggleSubtask      = { formViewModel.toggleFormSubtask(it) },
-        onSave               = { formViewModel.saveTask() },
-        isSaving             = isSaving,
-        saveError            = saveError,
-        onClearSaveError     = { formViewModel.clearSaveError() }
-    )
-
-    TaskDetailSheet(
-        visible          = showDetailSheet,
-        task             = selectedTask,
-        subtasks         = selectedSubs,
-        taskType         = selectedType,
-        media            = selectedMedia,
-        showMediaPrompt  = selectedTask != null && pendingMediaId == selectedTask?.id,
-        onDismiss        = { formViewModel.closeDetail() },
-        onEdit           = { formViewModel.editFromDetail() },
-        onDelete         = { selectedTask?.let { formViewModel.deleteTask(it) } },
-        onUpdateStatus   = { status -> selectedTask?.id?.let { formViewModel.updateTaskStatus(it, status) } },
-        onToggleSubtask  = { id, done -> formViewModel.toggleSubtaskInDetail(id, done) },
-        onAddMedia       = { uri, type -> selectedTask?.id?.let { formViewModel.addMedia(it, uri, type) } },
-        onDeleteMedia    = { formViewModel.deleteMedia(it) },
-        onMediaPromptDismiss = { formViewModel.clearPendingMediaPrompt() }
-    )
+    TaskSheets(formViewModel)
 }
 
 // ── Dial de conclusão ─────────────────────────────────────────────────────────
@@ -601,50 +385,6 @@ private fun CompletionDial(
             tint               = primaryColor,
             modifier           = Modifier.size(36.dp)
         )
-    }
-}
-
-// ── Caixa de estatística ──────────────────────────────────────────────────────
-@Composable
-private fun StatBox(
-    icon:     ImageVector,
-    iconTint: Color,
-    count:    Int,
-    label:    String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(iconTint.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, null, tint = iconTint, modifier = Modifier.size(17.dp))
-            }
-            Text(
-                text       = count.toString(),
-                style      = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color      = iconTint
-            )
-            Text(
-                text   = label,
-                style  = MaterialTheme.typography.labelSmall,
-                color  = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
-        }
     }
 }
 

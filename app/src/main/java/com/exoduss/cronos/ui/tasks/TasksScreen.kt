@@ -33,19 +33,6 @@ fun TasksScreen(
     val taskTypes by viewModel.taskTypes.collectAsStateWithLifecycle()
     val overdueCount by viewModel.overdueCount.collectAsStateWithLifecycle()
 
-    val showFormSheet by formViewModel.showFormSheet.collectAsStateWithLifecycle()
-    val formState by formViewModel.formState.collectAsStateWithLifecycle()
-    val formSubtasks by formViewModel.formSubtasks.collectAsStateWithLifecycle()
-    val isSaving by formViewModel.isSaving.collectAsStateWithLifecycle()
-    val saveError by formViewModel.saveError.collectAsStateWithLifecycle()
-    val showDetailSheet by formViewModel.showDetailSheet.collectAsStateWithLifecycle()
-    val selectedTask by formViewModel.selectedTask.collectAsStateWithLifecycle()
-    val selectedSubtasks by formViewModel.selectedTaskSubtasks.collectAsStateWithLifecycle()
-    val selectedType by formViewModel.selectedTaskType.collectAsStateWithLifecycle()
-    val selectedMedia by formViewModel.selectedTaskMedia.collectAsStateWithLifecycle()
-    val pendingMediaTaskId by formViewModel.pendingMediaTaskId.collectAsStateWithLifecycle()
-    val allTypes by formViewModel.taskTypes.collectAsStateWithLifecycle()
-
     // ── Vista: lista ou kanban ──────────────────────────────────────────────
     var isKanban by remember { mutableStateOf(false) }
 
@@ -224,40 +211,5 @@ fun TasksScreen(
         }
     }
 
-    TaskFormSheet(
-        visible = showFormSheet, formState = formState, formSubtasks = formSubtasks, taskTypes = allTypes,
-        onDismiss = { formViewModel.closeForm() },
-        onUpdateTitle = { formViewModel.updateTitle(it) },
-        onUpdateDescription = { formViewModel.updateDescription(it) },
-        onUpdateTypeId = { formViewModel.updateTypeId(it) },
-        onUpdatePriority = { formViewModel.updatePriority(it) },
-        onUpdateDueDate = { formViewModel.updateDueDate(it) },
-        onUpdateDueTime = { formViewModel.updateDueTime(it) },
-        onUpdateRecurrence = { formViewModel.updateRecurrence(it) },
-        onUpdatePinned = { formViewModel.updatePinned(it) },
-        onUpdateReminder = { formViewModel.updateReminder(it) },
-        onUpdateReminderFrequency = { formViewModel.updateReminderFrequency(it) },
-        onUpdateReminderDaysBefore = { formViewModel.updateReminderDaysBefore(it) },
-        onAddSubtask = { formViewModel.addSubtask(it) },
-        onRemoveSubtask = { formViewModel.removeSubtask(it) },
-        onToggleSubtask = { formViewModel.toggleFormSubtask(it) },
-        onSave = { formViewModel.saveTask() },
-        isSaving = isSaving,
-        saveError = saveError,
-        onClearSaveError = { formViewModel.clearSaveError() }
-    )
-
-    TaskDetailSheet(
-        visible = showDetailSheet, task = selectedTask, subtasks = selectedSubtasks,
-        taskType = selectedType, media = selectedMedia,
-        showMediaPrompt = selectedTask != null && pendingMediaTaskId == selectedTask?.id,
-        onDismiss = { formViewModel.closeDetail() },
-        onEdit = { formViewModel.editFromDetail() },
-        onDelete = { selectedTask?.let { formViewModel.deleteTask(it) } },
-        onUpdateStatus = { status -> selectedTask?.id?.let { formViewModel.updateTaskStatus(it, status) } },
-        onToggleSubtask = { id, done -> formViewModel.toggleSubtaskInDetail(id, done) },
-        onAddMedia = { uri, type -> selectedTask?.id?.let { formViewModel.addMedia(it, uri, type) } },
-        onDeleteMedia = { formViewModel.deleteMedia(it) },
-        onMediaPromptDismiss = { formViewModel.clearPendingMediaPrompt() }
-    )
+    TaskSheets(formViewModel)
 }
